@@ -29,4 +29,4 @@ next-env.d.ts
 # downloaded exercise animation GIFs (educational/non-commercial-use
 # dataset — not our copyright to redistribute; run `npm run fetch-photos`
 # to regenerate)
-/public/exercises/*.gif
+
