@@ -22,7 +22,7 @@ const nextConfig = {
   // GitHub Pages only serves static files — no Node server, no API routes,
   // no on-demand image optimization. `output: "export"` makes `next build`
   // emit a fully static site into ./out (what the deploy workflow uploads).
-  output: "export",
+  // output: "export",
   // Static export has no image-optimization server to call, so the (unused
   // here — this app renders exercise GIFs via plain <img>, not next/image)
   // Image component must run unoptimized.
