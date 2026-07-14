@@ -501,3 +501,35 @@ basePath ว่างเปล่าไม่กระทบ dev — `next build
 
 **ไฟล์ที่แก้ไขรอบนี้:** `.gitignore`, `next.config.mjs`, `components/ExercisePhoto.tsx`,
 ลบ `public/exercises/{back-superman,shoulders-pike-pushup,glutes-donkey-kick,glutes-step-up}.gif`
+## แก้ next start error + เหตุการณ์ git คอมมิตผิดพลาด (กู้คืนแล้ว) — 2026-07-14
+
+ผู้ใช้รัน `npm run build && npm run start` แล้วเจอ error: `next start` ใช้ร่วมกับ
+`output: "export"` ไม่ได้ (คนละโหมดกัน — export คือ static site ไม่มี server ให้ start)
+ผู้ใช้ลองแก้เองก่อนด้วยการ comment `output: "export",` ออกใน `next.config.mjs`
+(commit `a333f9e "fix: build filed"`) ซึ่งแก้ error ได้จริงแต่ทำให้การ deploy GitHub Pages
+รอบก่อนพังไปด้วย (`next build` จะไม่สร้างโฟลเดอร์ `./out` อีกต่อไป)
+
+**ระหว่างที่แก้ไข เกิดเหตุการณ์ git ผิดพลาดร้ายแรงแต่กู้คืนได้ครบ:** ตอนพยายาม commit
+การแก้ `package.json`, `.git/index` เกิดเสียหายกลางคัน (บัค sync ของ sandbox เหมือนที่เจอ
+กับไฟล์อื่นซ้ำๆ ตลอดเซสชันนี้) ทำให้ `git commit` คอมมิตทับด้วย index ที่เสียหาย (อ่านเป็น
+ค่าว่าง) กลายเป็น commit ที่ "ลบไฟล์เกือบทั้งหมดในโปรเจกต์" (82 ไฟล์) โดยไม่ได้ตั้งใจ
+**สิ่งสำคัญ: ไม่มีอะไรถูก push ไป GitHub เลย ยังอยู่แค่ในเครื่อง** จึงกู้คืนได้ปลอดภัย
+ด้วย `git reset --hard` กลับไปที่ commit ล่าสุดที่ถูกต้อง (`a333f9e`) ตรวจสอบว่าไฟล์
+ครบ 175 ไฟล์เหมือนเดิมก่อนดำเนินการต่อ
+
+ระหว่างตรวจสอบยังพบด้วยว่า **ผู้ใช้ทำงานในโฟลเดอร์เดียวกันนี้พร้อมกันจากเครื่องตัวเอง**
+(เจอ 2 commit ที่ไม่ใช่ของ Claude: `e5ff8dc "fix: deploy gif"` อัปเดตไฟล์ GIF 5 ไฟล์ที่
+เคยแก้ไปก่อนหน้า และ `a333f9e "fix: build filed"` ที่กล่าวถึงข้างต้น) — เป็นสาเหตุที่ทำให้
+index เสียหายง่ายขึ้น เพราะมีการเขียนไฟล์แข่งกันจากสองฝั่ง
+
+**แก้ที่ถูกต้อง (commit `3457e45`):** เปิด `output: "export"` กลับมา (จำเป็นสำหรับ
+GitHub Pages) แล้วแก้ที่ต้นตอจริงแทน — เปลี่ยนสคริปต์ `npm start` ใน `package.json` จาก
+`next start` เป็น `npx serve@latest out` (serve โฟลเดอร์ static ที่ export ออกมา ตรงกับ
+พฤติกรรมจริงที่ GitHub Pages จะ serve) วิธีนี้ได้ทั้งสองอย่าง: preview local ได้ปกติ และ
+deploy ขึ้น GitHub Pages ได้ด้วย
+
+**ทดสอบ:** `tsc --noEmit` ผ่าน 0 error, ตรวจ diff ที่ stage ก่อน commit ว่ามีแค่ 2 ไฟล์
+2 บรรทัดตามตั้งใจ (ไม่ใช่ diff ทั้งโปรเจกต์แบบครั้งที่ผิดพลาด), นับไฟล์ในโปรเจกต์ตรงกับ
+ก่อนเกิดเหตุ (175 ไฟล์)
+
+**ไฟล์ที่แก้ไขรอบนี้:** `next.config.mjs`, `package.json`
