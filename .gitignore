@@ -26,7 +26,9 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# downloaded exercise animation GIFs (educational/non-commercial-use
-# dataset — not our copyright to redistribute; run `npm run fetch-photos`
-# to regenerate)
-
+# NOTE: /public/exercises/*.gif (downloaded exercise animation GIFs) are
+# intentionally NOT ignored and ARE committed to this repo, so the deployed
+# GitHub Pages site has real images instead of falling back to icons. See
+# agent.md for the source license note (hasaneyldrm/exercises-dataset,
+# educational/non-commercial use) — this is a personal, non-commercial
+# project. Regenerate/re-verify matches with `npm run fetch-photos`.

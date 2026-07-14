@@ -11,6 +11,13 @@ interface ExercisePhotoProps {
   className?: string;
 }
 
+// Set at build time in next.config.mjs — empty locally, "/repo-name" when
+// built inside GitHub Actions for GitHub Pages. This <img> tag is a plain
+// HTML element (not next/image or next/link), so unlike those it does NOT
+// automatically pick up Next's configured basePath — the prefix has to be
+// added by hand here or the GIFs 404 once deployed under a subpath.
+const BASE_PATH = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
+
 /**
  * Shows a real exercise animation GIF from /public/exercises/{exerciseId}.gif
  * when available (downloaded via `npm run fetch-photos`, see
@@ -38,7 +45,7 @@ export default function ExercisePhoto({
   return (
     // eslint-disable-next-line @next/next/no-img-element
     <img
-      src={`/exercises/${exerciseId}.gif`}
+      src={`${BASE_PATH}/exercises/${exerciseId}.gif`}
       alt={alt}
       loading="lazy"
       onError={() => setBroken(true)}
