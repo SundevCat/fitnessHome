@@ -46,7 +46,7 @@ const GENDER_LABEL: Record<Gender, string> = {
 const CHIP_STYLES = [
   "bg-sage-50 text-sage-700 border-sage-200",
   "bg-amber-50 text-amber-700 border-amber-300/50",
-  "bg-coral-100 text-coral-600 border-coral-400/30",
+  "bg-coral-100 text-coral-700 border-coral-400/30",
   "bg-surface2 text-inkSoft border-line",
   "bg-sage-100 text-sage-800 border-sage-300/50",
 ];
@@ -114,41 +114,56 @@ export default function ProgramPageClient() {
 
   return (
     <main className="min-h-screen bg-paper relative overflow-hidden">
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-x-0 top-0 h-56 sm:h-[22rem] bg-hero-mesh"
-      />
       <div className="relative mx-auto max-w-5xl px-4 sm:px-6 py-6 sm:py-12 space-y-6 sm:space-y-8">
-        <header className="space-y-2.5 sm:space-y-4 animate-fade-in-up">
-          <Link
-            href="/"
-            className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-medium text-sage-700 hover:text-sage-800 transition-colors rounded-full bg-surface border border-line px-2.5 py-1 sm:px-3 sm:py-1.5 hover:bg-surface2 shadow-soft"
-          >
-            ← เปลี่ยนเงื่อนไข
-          </Link>
-          <h1 className="font-heading font-bold text-2xl sm:text-3xl md:text-4xl text-ink tracking-tight">
-            โปรแกรมฝึกเวทของคุณ
-          </h1>
-          <div className="flex flex-wrap gap-1.5 sm:gap-2">
-            {chipLabels.map((label, i) => (
-              <span
-                key={label}
-                className={[
-                  "text-[10px] sm:text-xs font-medium rounded-full border px-2.5 py-1 sm:px-3 sm:py-1.5",
-                  CHIP_STYLES[i % CHIP_STYLES.length],
-                ].join(" ")}
-              >
-                {label}
-              </span>
-            ))}
-          </div>
-        </header>
+        {/* The decorative wash used to be a sibling with a fixed h-56/h-[22rem]
+            height, sized for a single-line header. On narrow screens the
+            header can wrap taller than that (long title + up to 5 filter
+            chips reflowing), which pushed ProgramDayView below where the
+            green gradient stopped. Scoping the gradient to this wrapper
+            makes it always match the header's actual rendered height
+            instead of a guessed pixel value, with a bit of top bleed
+            (-top-6/-top-10) kept for the original soft look. The bottom
+            edge stays pinned exactly to the header (no bleed) on purpose:
+            bleeding past the header used to let the fade creep down toward
+            the day-tab pills, and since the selected tab is itself solid
+            green, the soft wash fading out right next to it looked like an
+            abrupt, misaligned cut. */}
+        <div className="relative">
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute -inset-x-4 sm:-inset-x-6 -top-6 sm:-top-10 bottom-0 sm:-bottom-5 bg-hero-mesh"
+          />
+          <header className="relative space-y-2.5 sm:space-y-4 animate-fade-in-up">
+            <Link
+              href="/"
+              className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-medium text-sage-700 hover:text-sage-800 transition-colors rounded-full bg-surface border border-line px-2.5 py-1 sm:px-3 sm:py-1.5 hover:bg-surface2 shadow-soft"
+            >
+              ← เปลี่ยนเงื่อนไข
+            </Link>
+            <h1 className="font-heading font-bold text-2xl sm:text-3xl md:text-4xl text-ink tracking-tight">
+              โปรแกรมฝึกเวทของคุณ
+            </h1>
+            <div className="flex flex-wrap gap-1.5 sm:gap-2">
+              {chipLabels.map((label, i) => (
+                <span
+                  key={label}
+                  className={[
+                    "text-[11px] sm:text-xs font-medium rounded-full border px-2.5 py-1 sm:px-3 sm:py-1.5",
+                    CHIP_STYLES[i % CHIP_STYLES.length],
+                  ].join(" ")}
+                >
+                  {label}
+                </span>
+              ))}
+            </div>
+          </header>
+        </div>
 
         <ProgramDayView program={program} />
 
         <section className="rounded-xl2 sm:rounded-xl3 border border-line bg-surface p-4 sm:p-6 space-y-2.5 sm:space-y-3 shadow-soft">
           <h2 className="font-heading font-semibold text-base sm:text-lg text-ink flex items-center gap-2">
-            <span className="flex h-5 w-5 sm:h-6 sm:w-6 items-center justify-center rounded-full bg-amber-100 text-amber-600 text-[10px] sm:text-xs font-bold flex-shrink-0">
+            <span className="flex h-5 w-5 sm:h-6 sm:w-6 items-center justify-center rounded-full bg-amber-100 text-amber-700 text-[11px] sm:text-xs font-bold flex-shrink-0">
               !
             </span>
             หมายเหตุทั่วไป

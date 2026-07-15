@@ -47,17 +47,17 @@ export default function ExerciseCard({ exercise, index }: ExerciseCardProps) {
           className="h-24 w-24 rounded-xl2 sm:rounded-xl3 flex-shrink-0 ring-1 ring-line"
         />
         <div className="min-w-0">
-          <p className="text-[10px] sm:text-xs text-inkSoft font-medium">ท่าที่ {index + 1}</p>
+          <p className="text-[11px] sm:text-xs text-inkSoft font-medium">ท่าที่ {index + 1}</p>
           <p className="font-heading font-semibold text-sm sm:text-base text-ink leading-tight truncate">
             {exercise.nameTh}
           </p>
-          <p className="text-[10px] sm:text-xs text-inkSoft truncate">{exercise.nameEn}</p>
+          <p className="text-[11px] sm:text-xs text-inkSoft truncate">{exercise.nameEn}</p>
         </div>
       </div>
 
       <div className="flex-1 grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-3 items-start">
         <div className="rounded-lg sm:rounded-xl2 bg-paper border border-line px-2.5 py-1.5 sm:px-3 sm:py-2">
-          <p className="flex items-center gap-1 text-[10px] sm:text-xs text-inkSoft">
+          <p className="flex items-center gap-1 text-[11px] sm:text-xs text-inkSoft">
             <RepsIcon className="h-3 w-3 sm:h-3.5 sm:w-3.5 flex-shrink-0 text-sage-500" />
             เซต x ครั้ง
           </p>
@@ -66,7 +66,7 @@ export default function ExerciseCard({ exercise, index }: ExerciseCardProps) {
           </p>
         </div>
         <div className="rounded-lg sm:rounded-xl2 bg-paper border border-line px-2.5 py-1.5 sm:px-3 sm:py-2">
-          <p className="flex items-center gap-1 text-[10px] sm:text-xs text-inkSoft">
+          <p className="flex items-center gap-1 text-[11px] sm:text-xs text-inkSoft">
             <ClockIcon className="h-3 w-3 sm:h-3.5 sm:w-3.5 flex-shrink-0 text-sage-500" />
             พัก
           </p>
@@ -80,8 +80,8 @@ export default function ExerciseCard({ exercise, index }: ExerciseCardProps) {
         >
           <p
             className={[
-              "text-[10px] sm:text-xs font-medium",
-              exercise.isCompound ? "text-amber-600" : "text-sage-700",
+              "text-[11px] sm:text-xs font-medium",
+              exercise.isCompound ? "text-amber-700" : "text-sage-700",
             ].join(" ")}
           >
             {exercise.isCompound ? "ท่าหลัก" : "ท่าเสริม"}

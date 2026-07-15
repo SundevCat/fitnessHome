@@ -28,12 +28,12 @@ export default function ProgramDayView({ program }: ProgramDayViewProps) {
       {/* Compact pill selector — each day already repeats its title + focus
           muscle groups in the panel header below, so the tabs themselves only
           need the short title plus a representative body-part icon to stay
-          scannable on narrow screens without duplicating information. */}
-      <div
-        role="tablist"
-        aria-label="วันฝึกในสัปดาห์"
-        className="flex gap-1.5 overflow-x-auto scrollbar-thin pb-2 -mx-1 px-1"
-      >
+          scannable on narrow screens without duplicating information. Tabs
+          wrap to a new row instead of scrolling horizontally so a 6-day
+          program never overflows off-screen or shows a scrollbar. min-h-9
+          keeps each tab a usable tap target on mobile even though the
+          visible pill itself stays compact. */}
+      <div role="tablist" aria-label="วันฝึกในสัปดาห์" className="flex flex-wrap gap-1.5">
         {program.days.map((day, index) => {
           const selected = index === activeIndex;
           const repIcon = day.exercises[0]?.icon ?? "core";
@@ -48,7 +48,7 @@ export default function ProgramDayView({ program }: ProgramDayViewProps) {
               onClick={() => setActiveIndex(index)}
               onKeyDown={(e) => handleTabKeyDown(e, index)}
               className={[
-                "flex-shrink-0 inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 sm:py-2 text-[11px] sm:text-sm font-heading font-semibold whitespace-nowrap transition-all duration-200",
+                "flex-shrink-0 inline-flex min-h-9 sm:min-h-0 items-center gap-1 sm:gap-1.5 rounded-full border px-2.5 sm:px-3 py-2 sm:py-2 text-[11px] sm:text-sm font-heading font-semibold whitespace-nowrap transition-all duration-200",
                 selected
                   ? "bg-sage-gradient border-transparent text-paper shadow-glow"
                   : "bg-surface border-line text-ink shadow-soft hover:-translate-y-0.5 hover:shadow-lifted hover:border-sage-300",
@@ -56,7 +56,7 @@ export default function ProgramDayView({ program }: ProgramDayViewProps) {
             >
               <Icon
                 name={repIcon}
-                className={["h-3 w-3 sm:h-3.5 sm:w-3.5 flex-shrink-0", selected ? "text-paper" : "text-sage-500"].join(" ")}
+                className={["h-2.5 w-2.5 sm:h-3.5 sm:w-3.5 flex-shrink-0", selected ? "text-paper" : "text-sage-500"].join(" ")}
               />
               {day.titleTh}
             </button>

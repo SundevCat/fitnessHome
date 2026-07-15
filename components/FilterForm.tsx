@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   DaysPerWeek,
@@ -51,21 +51,137 @@ const GENDER_OPTIONS: OptionDef<Gender>[] = [
   { value: "unspecified", labelTh: "ไม่ระบุ", labelEn: "Prefer not to say", descTh: "ใช้สัดส่วนท่ามาตรฐาน ไม่เน้นกลุ่มใดเป็นพิเศษ" },
 ];
 
-function ProgressBar({ completed, total }: { completed: number; total: number }) {
-  const pct = Math.round((completed / total) * 100);
+const STEP_META = [
+  { title: "เป้าหมายของคุณ", shortTitle: "เป้าหมาย", subtitle: "เลือกสิ่งที่คุณอยากได้จากการเล่นเวทมากที่สุด" },
+  { title: "ระดับประสบการณ์", shortTitle: "ระดับ", subtitle: "ช่วยให้ระบบปรับจำนวนท่าและความหนักให้เหมาะสม" },
+  { title: "จำนวนวันต่อสัปดาห์", shortTitle: "จำนวนวัน", subtitle: "เลือกตามเวลาที่คุณสะดวกในแต่ละสัปดาห์" },
+  { title: "สถานที่ออกกำลังกาย", shortTitle: "สถานที่", subtitle: "ระบบจะเลือกเฉพาะท่าที่ใช้อุปกรณ์ที่คุณมีจริงๆ เท่านั้น" },
+  {
+    title: "เพศ",
+    shortTitle: "เพศ",
+    subtitle:
+      "ทุกท่าในฐานข้อมูลใช้ฝึกได้เหมือนกันทุกเพศ ตัวเลือกนี้แค่ปรับสัดส่วนน้ำหนักท่าให้เข้ากับเป้าหมายที่พบบ่อยเท่านั้น เลือก “ไม่ระบุ” ได้ถ้าไม่ต้องการเน้นกลุ่มใดเป็นพิเศษ",
+  },
+];
+
+const TOTAL_STEPS = STEP_META.length;
+
+function labelFor<T extends string | number>(options: OptionDef<T>[], value: T | null): string | null {
+  if (value === null) return null;
+  const found = options.find((o) => o.value === value);
+  return found ? found.labelTh : null;
+}
+
+function CheckIcon({ className }: { className?: string }) {
   return (
-    <div className="sticky top-0 z-10 -mx-4 sm:-mx-6 mb-6 sm:mb-8 px-4 sm:px-6 py-2 sm:py-3 bg-paper/85 glass border-b border-line">
-      <div className="mx-auto max-w-5xl flex items-center gap-2.5 sm:gap-3">
-        <div className="flex-1 h-1 sm:h-1.5 rounded-full bg-surface2 overflow-hidden">
-          <div
-            className="h-full rounded-full bg-sage-gradient transition-all duration-500 ease-out"
-            style={{ width: `${pct}%` }}
-          />
-        </div>
-        <span className="text-[11px] sm:text-xs font-semibold text-inkSoft font-heading flex-shrink-0 tabular-nums">
-          {completed}/{total}
-        </span>
-      </div>
+    <svg viewBox="0 0 12 12" className={className} fill="none" aria-hidden="true">
+      <path
+        d="M2.5 6.2 5 8.7l4.5-5.4"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+function ArrowIcon({ className, flip }: { className?: string; flip?: boolean }) {
+  return (
+    <svg
+      viewBox="0 0 16 16"
+      className={className}
+      fill="none"
+      aria-hidden="true"
+      style={flip ? { transform: "scaleX(-1)" } : undefined}
+    >
+      <path d="M6 3.5 10.5 8 6 12.5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+function PencilIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 12 12" className={className} fill="none" aria-hidden="true">
+      <path
+        d="M8.2 1.8 10.2 3.8 4 10H2v-2z"
+        stroke="currentColor"
+        strokeWidth="1.3"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+function StepDots({
+  current,
+  total,
+  onJump,
+}: {
+  current: number;
+  total: number;
+  onJump: (index: number) => void;
+}) {
+  return (
+    <div className="flex items-center justify-center" role="presentation">
+      {Array.from({ length: total }).map((_, i) => {
+        const isActive = i === current;
+        const isDone = i < current;
+        const isReachable = i <= current;
+        return (
+          <button
+            key={i}
+            type="button"
+            aria-label={`ไปข้อที่ ${i + 1}`}
+            aria-current={isActive ? "step" : undefined}
+            disabled={!isReachable}
+            onClick={() => isReachable && onJump(i)}
+            className={[
+              "group flex items-center justify-center p-1.5 sm:p-2",
+              isReachable ? "cursor-pointer" : "cursor-default",
+            ].join(" ")}
+          >
+            <span
+              aria-hidden="true"
+              className={[
+                "block h-1.5 sm:h-2 rounded-full transition-all duration-300",
+                isActive
+                  ? "w-6 sm:w-8 bg-sage-gradient"
+                  : isDone
+                    ? "w-1.5 sm:w-2 bg-sage-400 group-hover:bg-sage-500"
+                    : "w-1.5 sm:w-2 bg-surface2",
+              ].join(" ")}
+            />
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+function AnsweredSummary({
+  items,
+  onEdit,
+}: {
+  items: { step: number; shortTitle: string; label: string }[];
+  onEdit: (step: number) => void;
+}) {
+  if (items.length === 0) return null;
+  return (
+    <div className="mb-2.5 sm:mb-4 flex flex-wrap gap-1.5">
+      {items.map((item) => (
+        <button
+          key={item.step}
+          type="button"
+          onClick={() => onEdit(item.step)}
+          className="group flex min-w-0 items-center gap-1 rounded-full border border-line bg-surface px-2 sm:px-2.5 py-1 text-[11px] sm:text-xs text-inkSoft shadow-soft transition-colors hover:border-sage-300 hover:text-sage-700"
+        >
+          <span className="flex-shrink-0 font-semibold text-sage-600">{item.shortTitle}:</span>
+          <span className="max-w-[5rem] sm:max-w-[10rem] truncate">{item.label}</span>
+          <PencilIcon className="h-2.5 w-2.5 flex-shrink-0 text-inkSoft/60 group-hover:text-sage-600" />
+        </button>
+      ))}
     </div>
   );
 }
@@ -86,8 +202,7 @@ function OptionCard<T extends string | number>({
       aria-checked={selected}
       onClick={() => onSelect(option.value)}
       className={[
-        "group relative text-left rounded-xl2 sm:rounded-xl3 border p-3 sm:p-5 transition-all duration-200 w-full h-full",
-        "flex flex-col gap-1 sm:gap-1.5",
+        "group flex w-full items-center gap-2.5 sm:gap-4 rounded-xl2 sm:rounded-xl3 border p-2.5 sm:p-4 text-left transition-all duration-200",
         selected
           ? "border-sage-500 bg-sage-50 shadow-glow"
           : "border-line bg-surface shadow-soft hover:-translate-y-0.5 hover:shadow-lifted hover:border-sage-300",
@@ -96,74 +211,66 @@ function OptionCard<T extends string | number>({
       <span
         aria-hidden="true"
         className={[
-          "absolute top-2.5 right-2.5 sm:top-3 sm:right-3 h-4 w-4 sm:h-5 sm:w-5 rounded-full flex items-center justify-center transition-all duration-200 flex-shrink-0",
+          "flex h-4 w-4 sm:h-6 sm:w-6 flex-shrink-0 items-center justify-center rounded-full transition-all duration-200",
           selected
-            ? "bg-sage-gradient scale-100 opacity-100"
-            : "border border-line bg-paper scale-90 opacity-60 group-hover:opacity-100 group-hover:border-sage-300",
+            ? "bg-sage-gradient"
+            : "border-2 border-line bg-paper group-hover:border-sage-300",
         ].join(" ")}
       >
-        {selected && (
-          <svg viewBox="0 0 12 12" className="h-2.5 w-2.5 sm:h-3 sm:w-3 text-paper" fill="none">
-            <path
-              d="M2.5 6.2 5 8.7l4.5-5.4"
-              stroke="currentColor"
-              strokeWidth="1.6"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
-        )}
+        {selected && <CheckIcon className="h-2 w-2 sm:h-3 sm:w-3 text-paper" />}
       </span>
-      <span className="font-heading font-semibold text-ink text-sm sm:text-lg pr-6 leading-snug">
-        {option.labelTh}
+      <span className="min-w-0 flex-1">
+        <span className="flex flex-wrap items-center gap-x-1.5 gap-y-0">
+          <span className="font-heading font-semibold text-ink text-[13px] sm:text-base leading-tight">
+            {option.labelTh}
+          </span>
+          <span className="hidden sm:inline text-[11px] uppercase tracking-wider text-amber-700 font-semibold">
+            {option.labelEn}
+          </span>
+        </span>
+        <span className="block text-[11px] sm:text-sm text-inkSoft leading-tight sm:leading-snug line-clamp-1 sm:line-clamp-none">
+          {option.descTh}
+        </span>
       </span>
-      <span className="text-[9px] sm:text-[11px] uppercase tracking-wider text-amber-600 font-semibold">
-        {option.labelEn}
-      </span>
-      <span className="text-xs sm:text-sm text-inkSoft leading-snug">{option.descTh}</span>
     </button>
   );
 }
 
-function Section<T extends string | number>({
-  step,
+function StepScreen<T extends string | number>({
+  index,
   title,
   subtitle,
   options,
   value,
   onSelect,
-  columns,
 }: {
-  step: number;
+  index: number;
   title: string;
   subtitle: string;
   options: OptionDef<T>[];
   value: T | null;
   onSelect: (value: T) => void;
-  columns: string;
 }) {
   return (
-    <section aria-labelledby={`section-${step}`} className="space-y-2.5 sm:space-y-3 scroll-mt-16 sm:scroll-mt-24">
-      <div className="flex items-baseline gap-2 sm:gap-3">
-        <span className="flex h-6 w-6 sm:h-7 sm:w-7 items-center justify-center rounded-full bg-sage-gradient text-paper text-[11px] sm:text-xs font-bold font-heading flex-shrink-0 shadow-glow">
-          {step}
+    <div className="animate-fade-in-up space-y-2.5 sm:space-y-6">
+      <div className="space-y-0.5 sm:space-y-1.5">
+        <span className="font-heading text-[11px] sm:text-xs font-bold uppercase tracking-wider text-sage-600">
+          ข้อที่ {index} จาก {TOTAL_STEPS}
         </span>
-        <h2 id={`section-${step}`} className="font-heading font-semibold text-base sm:text-xl text-ink tracking-tight">
+        <h2
+          id={`step-title-${index}`}
+          className="font-heading font-bold text-base sm:text-2xl md:text-3xl text-ink tracking-tight leading-tight"
+        >
           {title}
         </h2>
+        <p className="text-[11px] sm:text-sm text-inkSoft leading-snug line-clamp-2 sm:line-clamp-none">{subtitle}</p>
       </div>
-      <p className="text-xs sm:text-sm text-inkSoft pl-8 sm:pl-10">{subtitle}</p>
-      <div role="radiogroup" aria-labelledby={`section-${step}`} className={`grid ${columns} gap-2 sm:gap-3 sm:pl-10`}>
+      <div role="radiogroup" aria-labelledby={`step-title-${index}`} className="space-y-1.5 sm:space-y-2.5">
         {options.map((option) => (
-          <OptionCard
-            key={option.value}
-            option={option}
-            selected={value === option.value}
-            onSelect={onSelect}
-          />
+          <OptionCard key={option.value} option={option} selected={value === option.value} onSelect={onSelect} />
         ))}
       </div>
-    </section>
+    </div>
   );
 }
 
@@ -174,12 +281,25 @@ export default function FilterForm() {
   const [daysPerWeek, setDaysPerWeek] = useState<DaysPerWeek | null>(null);
   const [location, setLocation] = useState<Location | null>(null);
   const [gender, setGender] = useState<Gender | null>(null);
+  const [currentStep, setCurrentStep] = useState(0);
 
-  const completedCount = useMemo(
-    () => [goal, experience, daysPerWeek, location, gender].filter((v) => v !== null).length,
-    [goal, experience, daysPerWeek, location, gender]
-  );
-  const isComplete = completedCount === 5;
+  const answers = [goal, experience, daysPerWeek, location, gender];
+  const canProceed = answers[currentStep] !== null;
+  const isLastStep = currentStep === TOTAL_STEPS - 1;
+
+  const answerLabels = [
+    labelFor(GOAL_OPTIONS, goal),
+    labelFor(EXPERIENCE_OPTIONS, experience),
+    labelFor(DAYS_OPTIONS, daysPerWeek),
+    labelFor(LOCATION_OPTIONS, location),
+    labelFor(GENDER_OPTIONS, gender),
+  ];
+
+  const answeredSummaries = answerLabels
+    .map((label, i) =>
+      label !== null && i < currentStep ? { step: i, shortTitle: STEP_META[i].shortTitle, label } : null
+    )
+    .filter((item): item is { step: number; shortTitle: string; label: string } => item !== null);
 
   function handleSubmit() {
     if (!goal || !experience || !daysPerWeek || !location || !gender) return;
@@ -194,75 +314,102 @@ export default function FilterForm() {
     router.push(`/program?${params.toString()}`);
   }
 
-  return (
-    <div>
-      <ProgressBar completed={completedCount} total={5} />
-      <div className="space-y-7 sm:space-y-10">
-        <Section
-          step={1}
-          title="เป้าหมายของคุณ"
-          subtitle="เลือกสิ่งที่คุณอยากได้จากการเล่นเวทมากที่สุด"
-          options={GOAL_OPTIONS}
-          value={goal}
-          onSelect={setGoal}
-          columns="grid-cols-1 sm:grid-cols-2"
-        />
-        <Section
-          step={2}
-          title="ระดับประสบการณ์"
-          subtitle="ช่วยให้ระบบปรับจำนวนท่าและความหนักให้เหมาะสม"
-          options={EXPERIENCE_OPTIONS}
-          value={experience}
-          onSelect={setExperience}
-          columns="grid-cols-1 sm:grid-cols-3"
-        />
-        <Section
-          step={3}
-          title="จำนวนวันต่อสัปดาห์"
-          subtitle="เลือกตามเวลาที่คุณสะดวกในแต่ละสัปดาห์"
-          options={DAYS_OPTIONS}
-          value={daysPerWeek}
-          onSelect={setDaysPerWeek}
-          columns="grid-cols-1 sm:grid-cols-2 lg:grid-cols-4"
-        />
-        <Section
-          step={4}
-          title="สถานที่ออกกำลังกาย"
-          subtitle="ระบบจะเลือกเฉพาะท่าที่ใช้อุปกรณ์ที่คุณมีจริงๆ เท่านั้น"
-          options={LOCATION_OPTIONS}
-          value={location}
-          onSelect={setLocation}
-          columns="grid-cols-1 sm:grid-cols-2 lg:grid-cols-4"
-        />
-        <Section
-          step={5}
-          title="เพศ"
-          subtitle="ทุกท่าในฐานข้อมูลใช้ฝึกได้เหมือนกันทุกเพศ ตัวเลือกนี้แค่ปรับสัดส่วนน้ำหนักท่าให้เข้ากับเป้าหมายที่พบบ่อยเท่านั้น เลือก “ไม่ระบุ” ได้ถ้าไม่ต้องการเน้นกลุ่มใดเป็นพิเศษ"
-          options={GENDER_OPTIONS}
-          value={gender}
-          onSelect={setGender}
-          columns="grid-cols-1 sm:grid-cols-3"
-        />
+  function handleNext() {
+    if (!canProceed) return;
+    if (isLastStep) {
+      handleSubmit();
+      return;
+    }
+    setCurrentStep((s) => Math.min(TOTAL_STEPS - 1, s + 1));
+  }
 
-        <div className="flex flex-col items-center gap-2.5 sm:gap-3 pt-4 sm:pt-6">
-          <button
-            type="button"
-            disabled={!isComplete}
-            onClick={handleSubmit}
-            className={[
-              "font-heading font-semibold rounded-xl2 sm:rounded-xl3 px-8 sm:px-10 py-3.5 sm:py-4 text-sm sm:text-lg transition-all duration-200 w-full sm:w-auto",
-              isComplete
-                ? "bg-sage-gradient text-paper shadow-glow hover:shadow-lifted hover:-translate-y-0.5 active:translate-y-0"
-                : "bg-surface2 text-inkSoft cursor-not-allowed",
-            ].join(" ")}
-          >
-            สร้างโปรแกรม
-          </button>
-          {!isComplete && (
-            <p className="text-[11px] sm:text-xs text-inkSoft">กรุณาเลือกครบทั้ง 5 หมวดหมู่ก่อนสร้างโปรแกรม</p>
-          )}
+  function handleBack() {
+    setCurrentStep((s) => Math.max(0, s - 1));
+  }
+
+  const meta = STEP_META[currentStep];
+
+  return (
+    <div className="mx-auto w-full max-w-xl">
+      <div className="sticky top-0 z-10 -mx-4 sm:-mx-6 mb-3 sm:mb-8 bg-paper/85 glass border-b border-line px-4 sm:px-6 py-1.5 sm:py-3">
+        <div className="mx-auto flex max-w-xl items-center justify-between gap-3">
+          <StepDots current={currentStep} total={TOTAL_STEPS} onJump={setCurrentStep} />
+          <span className="flex-shrink-0 text-[11px] sm:text-xs font-semibold text-inkSoft font-heading tabular-nums">
+            {currentStep + 1}/{TOTAL_STEPS}
+          </span>
         </div>
       </div>
+
+      <AnsweredSummary items={answeredSummaries} onEdit={setCurrentStep} />
+
+      <div key={currentStep}>
+        {currentStep === 0 && (
+          <StepScreen index={1} title={meta.title} subtitle={meta.subtitle} options={GOAL_OPTIONS} value={goal} onSelect={setGoal} />
+        )}
+        {currentStep === 1 && (
+          <StepScreen
+            index={2}
+            title={meta.title}
+            subtitle={meta.subtitle}
+            options={EXPERIENCE_OPTIONS}
+            value={experience}
+            onSelect={setExperience}
+          />
+        )}
+        {currentStep === 2 && (
+          <StepScreen
+            index={3}
+            title={meta.title}
+            subtitle={meta.subtitle}
+            options={DAYS_OPTIONS}
+            value={daysPerWeek}
+            onSelect={setDaysPerWeek}
+          />
+        )}
+        {currentStep === 3 && (
+          <StepScreen
+            index={4}
+            title={meta.title}
+            subtitle={meta.subtitle}
+            options={LOCATION_OPTIONS}
+            value={location}
+            onSelect={setLocation}
+          />
+        )}
+        {currentStep === 4 && (
+          <StepScreen index={5} title={meta.title} subtitle={meta.subtitle} options={GENDER_OPTIONS} value={gender} onSelect={setGender} />
+        )}
+      </div>
+
+      <div className="mt-3 sm:mt-8 flex items-center gap-2 sm:gap-3 pb-2 sm:pb-4">
+        {currentStep > 0 && (
+          <button
+            type="button"
+            onClick={handleBack}
+            aria-label="ย้อนกลับ"
+            className="flex flex-shrink-0 items-center justify-center rounded-xl2 sm:rounded-xl3 border border-line bg-surface p-2.5 sm:p-3.5 text-inkSoft shadow-soft transition-all duration-200 hover:border-sage-300 hover:text-sage-600 hover:-translate-y-0.5"
+          >
+            <ArrowIcon className="h-3.5 w-3.5 sm:h-5 sm:w-5" flip />
+          </button>
+        )}
+        <button
+          type="button"
+          disabled={!canProceed}
+          onClick={handleNext}
+          className={[
+            "flex flex-1 items-center justify-center gap-1.5 rounded-xl2 sm:rounded-xl3 py-2.5 sm:py-3.5 text-sm sm:text-base font-heading font-semibold transition-all duration-200",
+            canProceed
+              ? "bg-sage-gradient text-paper shadow-glow hover:shadow-lifted hover:-translate-y-0.5 active:translate-y-0"
+              : "bg-surface2 text-inkSoft cursor-not-allowed",
+          ].join(" ")}
+        >
+          {isLastStep ? "สร้างโปรแกรม" : "ถัดไป"}
+          {!isLastStep && <ArrowIcon className="h-3.5 w-3.5 sm:h-5 sm:w-5" />}
+        </button>
+      </div>
+      {!canProceed && (
+        <p className="text-center text-[11px] sm:text-xs text-inkSoft">เลือกตัวเลือกด้านบนก่อนเพื่อไปข้อถัดไป</p>
+      )}
     </div>
   );
 }

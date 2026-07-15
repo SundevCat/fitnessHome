@@ -41,11 +41,12 @@ const config: Config = {
           400: "#F0805C",
           500: "#E8663E",
           600: "#D14E27",
+          700: "#A63C1C",
         },
       },
       fontFamily: {
-        heading: ["var(--font-sora)", "sans-serif"],
-        body: ["var(--font-inter)", "sans-serif"],
+        heading: ["var(--font-sora)", "var(--font-noto-thai)", "sans-serif"],
+        body: ["var(--font-inter)", "var(--font-noto-thai)", "sans-serif"],
       },
       borderRadius: {
         xl2: "1.25rem",
