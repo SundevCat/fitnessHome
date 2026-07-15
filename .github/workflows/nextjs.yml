@@ -55,12 +55,16 @@ jobs:
           cache: ${{ steps.detect-package-manager.outputs.manager }}
       - name: Setup Pages
         uses: actions/configure-pages@v5
-        with:
-          # Automatically inject basePath in your Next.js configuration file and disable
-          # server side image optimization (https://nextjs.org/docs/api-reference/next/image#unoptimized).
-          #
-          # You may remove this line if you want to manage the configuration yourself.
-          static_site_generator: next
+        # NOTE: static_site_generator: next is intentionally NOT set here.
+        # That option makes configure-pages try to auto-inject basePath into
+        # next.config.mjs via naive text rewriting, which corrupts config
+        # files that aren't a bare `const nextConfig = {...}` (ours has
+        # if-blocks, let vars, and comments) -- causes a build-time
+        # "Failed to load next.config.mjs / SyntaxError: Unexpected string".
+        # See https://github.com/actions/configure-pages/issues/107.
+        # We already compute basePath/assetPrefix ourselves in
+        # next.config.mjs from GITHUB_ACTIONS/GITHUB_REPOSITORY, so this
+        # auto-injection isn't needed anyway.
       - name: Restore cache
         uses: actions/cache@v4
         with:
