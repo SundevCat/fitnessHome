@@ -533,3 +533,26 @@ deploy ขึ้น GitHub Pages ได้ด้วย
 ก่อนเกิดเหตุ (175 ไฟล์)
 
 **ไฟล์ที่แก้ไขรอบนี้:** `next.config.mjs`, `package.json`
+## Deploy พังจาก actions/configure-pages ทำลาย next.config.mjs — 2026-07-15
+
+Deploy บน GitHub Actions ล้มเหลวซ้ำหลายรอบด้วย error เดียวกัน:
+`Failed to load next.config.mjs ... SyntaxError: Unexpected string` ตรวจสอบไฟล์
+`next.config.mjs` ที่ commit จริงบน GitHub (byte-level, `node --check`, dynamic
+`import()` จำลอง code path เดียวกับที่ error stack trace แสดง) พบว่าไฟล์ valid สมบูรณ์
+100% ทุกครั้ง — สรุปว่าปัญหาไม่ได้อยู่ที่เนื้อหาไฟล์ที่เรา commit เอง
+
+**สาเหตุจริง (ยืนยันจาก GitHub issue actions/configure-pages#107):** ขั้นตอน
+"Setup Pages" ใน `.github/workflows/nextjs.yml` ใช้
+`actions/configure-pages@v5` พร้อม `static_site_generator: next` ซึ่งจะพยายาม
+"เขียนทับ" `next.config.mjs` แบบ naive text-injection เพื่อใส่ `basePath` เข้าไปเอง
+วิธีนี้ใช้ได้แค่กับไฟล์ config ที่เขียนแบบง่ายๆ (`const nextConfig = {...}` เปล่าๆ)
+แต่ไฟล์ของเรามี `if` block, `let` ตัวแปร, comment ภาษาอังกฤษยาวๆ — โครงสร้างซับซ้อนกว่าที่
+action นี้รองรับ ทำให้มันเขียนทับแล้วได้ syntax เพี้ยน error ตรงกับที่เจอเป๊ะๆ
+
+**แก้:** เอา `with: static_site_generator: next` ออกจาก step "Setup Pages" ทั้งหมด
+(commit `265cc56`) เพราะเราคำนวณ `basePath`/`assetPrefix` เองอยู่แล้วใน
+`next.config.mjs` (เช็คจาก `GITHUB_ACTIONS`/`GITHUB_REPOSITORY`) ไม่จำเป็นต้องพึ่ง
+auto-injection ของ action นี้เลย
+
+**หมายเหตุ:** sandbox นี้ไม่มีสิทธิ์ push ขึ้น GitHub (ไม่มี credential) — commit
+`265cc56` อยู่ในเครื่อง (local) รอผู้ใช้ push จากเครื่องตัวเองแทน
